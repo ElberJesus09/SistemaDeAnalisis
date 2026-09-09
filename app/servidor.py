@@ -121,14 +121,18 @@ class Manejador(BaseHTTPRequestHandler):
         return self.rfile.read(largo) if largo else b""
 
     def _responder(self, r: Respuesta):
-        self.send_response(r.estado)
-        self.send_header("Content-Type", r.tipo)
-        self.send_header("Content-Length", str(len(r.cuerpo)))
-        for k, v in r.cabeceras:
-            self.send_header(k, v)
-        self.end_headers()
-        if self.command != "HEAD":
-            self.wfile.write(r.cuerpo)
+        try:
+            self.send_response(r.estado)
+            self.send_header("Content-Type", r.tipo)
+            self.send_header("Content-Length", str(len(r.cuerpo)))
+            for k, v in r.cabeceras:
+                self.send_header(k, v)
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(r.cuerpo)
+        except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
+            # El cliente ya cerro la conexion; no se puede enviar otro HTTP 500.
+            self.close_connection = True
 
     # -- estaticos
     def _estatico(self, ruta_url):
@@ -187,8 +191,8 @@ class Manejador(BaseHTTPRequestHandler):
             return self._responder(Respuesta(
                 "<h3>Página no encontrada.</h3><p><a href='/'>Volver</a></p>", 404))
 
-        except BrokenPipeError:                      # pragma: no cover
-            pass
+        except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
+            self.close_connection = True
         except Exception:
             detalle = traceback.format_exc()
             print(detalle)
