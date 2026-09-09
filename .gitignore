@@ -1,0 +1,10 @@
+config.ini
+.env
+.venv/
+__pycache__/
+out/
+tmp/
+output/
+credenciales/
+config-copias.json
+copias_seguridad/

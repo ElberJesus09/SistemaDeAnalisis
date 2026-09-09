@@ -1,0 +1,186 @@
+{% extends "panel/base.html" %}
+{% block titulo %}{{ r.dni }}{% endblock %}
+{% block cuerpo %}
+
+{% macro campo(nombre, etiqueta, valor, ancho='') %}
+<div class="campo {{ 'falta' if nombre in faltan_campos }}" {% if ancho %}style="grid-column:{{ ancho }}"{% endif %}>
+  <label for="{{ nombre }}">{{ etiqueta }}</label>
+  <input id="{{ nombre }}" name="{{ nombre }}" type="text" value="{{ valor or '' }}">
+</div>
+{% endmacro %}
+
+{% macro lista(nombre, etiqueta, valor, opciones) %}
+<div class="campo {{ 'falta' if nombre in faltan_campos }}">
+  <label for="{{ nombre }}">{{ etiqueta }}</label>
+  <select id="{{ nombre }}" name="{{ nombre }}">
+    <option value=""></option>
+    {% for o in opciones %}
+    <option value="{{ o }}" {{ 'selected' if (valor or '') == o }}>{{ o }}</option>{% endfor %}
+  </select>
+</div>
+{% endmacro %}
+
+<h1>{{ r.nombre_completo }}</h1>
+<p class="sub">DNI {{ r.dni }} · Ciclo {{ r.ciclo }} ·
+  <a href="/inscripciones">volver al listado</a></p>
+
+{% if faltan_campos %}
+<div class="aviso mal">Faltan {{ faltan_campos|length }} dato(s) para poder emitir la
+  ficha: <strong>{{ faltan_nombres|join(', ') }}</strong>. Están marcados en rojo abajo.</div>
+{% else %}
+<div class="aviso ok">Ficha lista para emitir.
+  <a class="boton pdf" style="float:right;margin-top:-4px"
+     href="/inscripcion/{{ r.id }}/ficha">Descargar ficha PDF</a></div>
+{% endif %}
+
+{% if not faltan_campos %}
+<p><a class="boton" href="/inscripcion/{{ r.id }}/correo">Enviar ficha por correo</a></p>
+{% endif %}
+
+<form method="post" action="/inscripcion/{{ r.id }}">
+
+  <div class="tarjeta">
+    <h2>Datos personales</h2>
+    <div class="rejilla">
+      {{ campo('nombres', 'Nombres', r.nombres) }}
+      {{ campo('ap_paterno', 'Apellido paterno', r.ap_paterno) }}
+      {{ campo('ap_materno', 'Apellido materno', r.ap_materno) }}
+      {{ campo('dni', 'DNI', r.dni) }}
+      {{ campo('nacimiento', 'Nacimiento (dd/mm/aaaa)', r.nacimiento) }}
+      {{ lista('sexo', 'Sexo', r.sexo, ['Masculino', 'Femenino']) }}
+      {{ campo('telefono', 'Celular', r.telefono) }}
+      {{ campo('correo', 'Correo', r.correo) }}
+      {{ campo('departamento', 'Departamento', r.departamento) }}
+      {{ campo('provincia', 'Provincia', r.provincia) }}
+      {{ campo('distrito', 'Distrito', r.distrito) }}
+      {{ campo('direccion', 'Dirección', r.direccion, 'span 2') }}
+      {{ lista('menor_edad', '¿Es menor de edad?', r.menor_edad, ['Sí', 'No']) }}
+    </div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Colegio de procedencia</h2>
+    <div class="rejilla">
+      {{ campo('colegio', 'Colegio', r.colegio, 'span 2') }}
+      {{ campo('colegio_departamento', 'Departamento del colegio', r.colegio_departamento) }}
+      {{ campo('colegio_provincia', 'Provincia del colegio', r.colegio_provincia) }}
+      {{ campo('colegio_distrito', 'Distrito del colegio', r.colegio_distrito) }}
+      {{ campo('colegio_egreso', 'Año de egreso', r.colegio_egreso) }}
+    </div>
+  </div>
+
+  <div class="tarjeta" id="datos-apoderado" {{ 'hidden' if (r.menor_edad or '')|lower|first == 'n' }}>
+    <h2>Datos del apoderado</h2>
+    <p class="sub" style="margin:-6px 0 12px">Se requieren únicamente si el alumno es menor de edad.</p>
+    <div class="rejilla">
+      {{ campo('apo_nombres', 'Nombres', r.apo_nombres) }}
+      {{ campo('apo_ap_paterno', 'Apellido paterno', r.apo_ap_paterno) }}
+      {{ campo('apo_ap_materno', 'Apellido materno', r.apo_ap_materno) }}
+      {{ campo('apo_dni', 'DNI', r.apo_dni) }}
+      {{ campo('apo_telefono', 'Teléfono', r.apo_telefono) }}
+      {{ lista('apo_parentesco', 'Parentesco', r.apo_parentesco,
+               ['Padre', 'Madre', 'Hermano(a)', 'Tío(a)', 'Abuelo(a)', 'Tutor(a)']) }}
+    </div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Programación académica</h2>
+    <p class="sub">La ficha se emitirá para el ciclo <strong>{{ r.ciclo }}</strong>,
+      con los datos de esta inscripción.</p>
+    <div class="rejilla">
+      {{ campo('carrera', 'Carrera', r.carrera, 'span 2') }}
+      {{ lista('turno', 'Turno', r.turno, ['Mañana', 'Tarde', 'Noche']) }}
+      {{ campo('fecha_matricula', 'Fecha de matrícula (dd/mm/aaaa)', r.fecha_matricula) }}
+      {{ campo('sede', 'Sede', r.sede, 'span 2') }}
+      {{ lista('modalidad', 'Modalidad', r.modalidad, ['ORDINARIA', 'EXTRAORDINARIA']) }}
+    </div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Pago verificado con el banco</h2>
+    {% if pago.situacion == 'completo' %}
+      <div class="aviso ok" style="margin-bottom:14px">Pago completo ·
+        total S/ {{ '%.2f'|format(pago.total) }}</div>
+    {% elif pago.situacion == 'parcial' %}
+      <div class="aviso mal" style="margin-bottom:14px">Pago incompleto: falta
+        <strong>{{ pago.faltan|join(', ') }}</strong>.</div>
+    {% elif pago.situacion == 'observado' %}
+      <div class="aviso mal" style="margin-bottom:14px">Pago observado: revisa las diferencias antes de validarlo.</div>
+    {% else %}
+      <div class="aviso mal" style="margin-bottom:14px">No hay ningún pago de este
+        DNI en el reporte del banco.{% if exigir_pago %} Sin él no se puede emitir
+        la ficha.{% endif %}</div>
+    {% endif %}
+
+    {% if pago.observaciones %}
+    <ul class="aviso mal">
+      {% for aviso in pago.observaciones %}<li>{{ aviso }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <table class="pagos">
+      <tr><th>Concepto</th><th>Voucher</th><th>Últ. 7</th><th>Fecha</th>
+          <th>Agencia</th><th style="text-align:right">Importe</th></tr>
+      {% for d in pago.detalle %}
+      <tr class="{{ '' if d.pago else 'falta' }}">
+        <td><strong>{{ d.nombre }}</strong>
+          <div style="color:#5b6572;font-size:11.5px">
+            <code>{{ d.codigo }}</code>
+            {% if d.fijo %}fijo S/ {{ '%.2f'|format(d.esperado) }}
+            {% else %}importe variable{% endif %}</div>
+          {% if d.aviso %}<div style="color:#b42318;font-size:11.5px">{{ d.aviso }}</div>{% endif %}
+        </td>
+        {% if d.pago %}
+          <td>{% for p in d.movimientos %}{{ p.voucher }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td>{% for p in d.movimientos %}<code>{{ p.voucher_clave }}</code>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td>{% for p in d.movimientos %}{{ p.fecha_pago }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td>{% for p in d.movimientos %}{{ p.agencia }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td class="num">S/ {{ '%.2f'|format(d.importe) }}</td>
+        {% else %}
+          <td colspan="5" style="color:#b45309">Sin pago registrado</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </table>
+
+    {% if pago.voucher_declarado %}
+    <p class="sub" style="margin:14px 0 0">
+      Voucher declarado en el formulario: <code>{{ pago.voucher_declarado }}</code>
+      {% if pago.voucher_ok %}
+        — <span style="color:#127a4b">coincide con un pago del banco</span>.
+      {% else %}
+        — <span style="color:#b42318">no coincide con ninguno de sus pagos</span>.
+        Puede ser un error de tipeo o un voucher que no le pertenece.
+      {% endif %}
+    </p>
+    {% endif %}
+    <p class="sub" style="margin:10px 0 0">
+      Se comparan los 7 dígitos anteriores al guion de lo que escribe el alumno
+      (<code>1234567-1</code>) contra los últimos 7 del voucher del banco
+      (<code>81234567</code>).
+    </p>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Datos del pago declarados en el formulario</h2>
+    <div class="rejilla">
+      {{ campo('voucher', 'Nº de voucher', r.voucher) }}
+      {{ campo('agencia', 'Agencia', r.agencia) }}
+      {{ campo('fecha_pago', 'Fecha de pago (dd/mm/aaaa)', r.fecha_pago) }}
+      {{ campo('medio_pago', 'Medio de pago', r.medio_pago) }}
+      {{ campo('secuencia', 'Nº de secuencia', r.secuencia) }}
+      {{ campo('oferta', 'Oferta', r.oferta) }}
+    </div>
+  </div>
+
+  <button class="boton" type="submit">Guardar cambios</button>
+  <a class="boton gris" href="/inscripciones">Cancelar</a>
+</form>
+<script>
+  const menorEdad = document.getElementById('menor_edad');
+  const apoderado = document.getElementById('datos-apoderado');
+  menorEdad.addEventListener('change', () => {
+    apoderado.hidden = menorEdad.value === 'No';
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Inscripciones{% endblock %}
+{% block cuerpo %}
+
+<h1>Inscripciones</h1>
+<p class="sub">{{ total }} registro(s){% if incompletos %} · <strong>{{ incompletos }}</strong>
+  sin los datos necesarios para la ficha{% endif %}{% if sin_pago %} ·
+  <strong>{{ sin_pago }}</strong> sin el pago completo{% endif %}</p>
+
+{% if incompletos %}
+<details class="aviso info" style="margin-bottom:16px">
+  <summary style="cursor:pointer">
+    ¿Qué datos hacen falta para emitir una ficha?
+  </summary>
+  <p style="margin:10px 0 6px">Se le piden a todos:</p>
+  <ol style="margin:0;padding-left:22px;columns:2">
+    {% for o in obligatorios %}<li>{{ o }}</li>{% endfor %}
+  </ol>
+  <p style="margin:12px 0 6px">Y solo a los <strong>menores de edad</strong>:</p>
+  <ol start="{{ obligatorios|length + 1 }}" style="margin:0;padding-left:22px;columns:2">
+    {% for o in obligatorios_apoderado %}<li>{{ o }}</li>{% endfor %}
+  </ol>
+  <p style="margin:12px 0 0">
+    Con el formulario nuevo casi todos llegan llenos al importar. Los que falten
+    se completan con <em>Editar</em>; ahí salen marcados en rojo.
+  </p>
+</details>
+{% endif %}
+
+<form class="filtros" method="get" action="/inscripciones">
+  <div class="campo">
+    <label for="fecha">Día de registro</label>
+    <input id="fecha" name="fecha" type="date" value="{{ f.fecha }}">
+  </div>
+  <div class="campo" style="min-width:230px">
+    <label for="q">Buscar</label>
+    <input id="q" name="q" type="text" value="{{ f.q }}" placeholder="DNI, nombre o apellido">
+  </div>
+  <div class="campo">
+    <label for="ciclo">Ciclo</label>
+    <select id="ciclo" name="ciclo">
+      <option value="">Todos</option>
+      {% for c in ciclos %}
+      <option value="{{ c }}" {{ 'selected' if f.ciclo == c }}>{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <label for="carrera">Carrera</label>
+    <select id="carrera" name="carrera">
+      <option value="">Todas</option>
+      {% for c in carreras %}
+      <option value="{{ c }}" {{ 'selected' if f.carrera == c }}>{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <label for="estado">Estado</label>
+    <select id="estado" name="estado">
+      <option value="">Todos</option>
+      <option value="incompleto" {{ 'selected' if f.estado == 'incompleto' }}>Incompletos</option>
+      <option value="completo" {{ 'selected' if f.estado == 'completo' }}>Listos para ficha</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label for="pago">Pago</label>
+    <select id="pago" name="pago">
+      <option value="">Todos</option>
+      <option value="completo" {{ 'selected' if f.pago == 'completo' }}>Pagado</option>
+      <option value="parcial" {{ 'selected' if f.pago == 'parcial' }}>Pago parcial</option>
+      <option value="observado" {{ 'selected' if f.pago == 'observado' }}>Pago observado</option>
+      <option value="sin_pago" {{ 'selected' if f.pago == 'sin_pago' }}>Sin pago</option>
+    </select>
+  </div>
+  <button class="boton" type="submit">Filtrar</button>
+  <a class="boton gris" href="/inscripciones">Limpiar</a>
+</form>
+
+{% if dias %}
+<details class="tarjeta" open>
+  <summary><strong>Resumen por día de registro</strong></summary>
+  <p class="sub">Se usa la marca temporal del formulario, aunque el archivo se cargue después.
+    Los conteos respetan los filtros de arriba.</p>
+  <div class="envoltura"><table class="datos">
+    <tr><th>Fecha</th><th>Inscritos</th><th>Pagados</th><th>Parciales</th><th>Observados</th><th>Sin pago</th></tr>
+    {% for clave, d in dias.items() %}
+    <tr><td>{{ d.fecha }}</td><td>{{ d.total }}</td><td>{{ d.completo }}</td><td>{{ d.parcial }}</td><td>{{ d.observado }}</td><td>{{ d.sin_pago }}</td></tr>
+    {% endfor %}
+  </table></div>
+</details>
+{% endif %}
+
+<div class="envoltura">
+<table class="datos">
+  <tr>
+    <th>Registro</th><th>DNI</th><th>Apellidos y nombres</th><th>Carrera</th><th>Ciclo</th>
+    <th>Turno</th><th>Voucher</th><th>Pago</th><th>Datos</th><th></th>
+  </tr>
+  {% for r in filas %}
+  {% if loop.changed(r.dia_registro) %}
+  <tr><th colspan="10">{{ r.fecha_registro }}</th></tr>
+  {% endif %}
+  <tr>
+    <td>{{ r.marca_temporal or 'Sin fecha' }}</td>
+    <td>{{ r.dni }}</td>
+    <td><a href="/inscripcion/{{ r.id }}">{{ r.nombre_completo }}</a></td>
+    <td>{{ r.carrera }}</td>
+    <td>{{ r.ciclo }}</td>
+    <td>{{ r.turno or '—' }}</td>
+    <td>{{ r.voucher or '—' }}</td>
+    <td>
+      {% if r.pago == 'completo' %}<span class="etiqueta ok">Pagado</span>
+      {% elif r.pago == 'parcial' %}<span class="etiqueta falta">Parcial</span>
+      {% elif r.pago == 'observado' %}<span class="etiqueta mal">Observado</span>
+      {% else %}<span class="etiqueta mal">Sin pago</span>{% endif %}
+    </td>
+    <td>
+      {% if r.faltan %}
+        <span class="etiqueta falta" title="Faltan: {{ r.faltan|join(', ') }}">
+          Faltan {{ r.faltan|length }}</span>
+      {% else %}<span class="etiqueta ok">Completo</span>{% endif %}
+    </td>
+    <td style="white-space:nowrap">
+      <a class="boton gris" href="/inscripcion/{{ r.id }}">Editar</a>
+      {% if not r.faltan %}
+      <a class="boton pdf" href="/inscripcion/{{ r.id }}/ficha">Ficha PDF</a>{% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="10" style="text-align:center;padding:26px;color:#5b6572">
+    No hay inscripciones que coincidan.
+    <a href="/importar">Importar un archivo</a>.</td></tr>
+  {% endfor %}
+</table>
+</div>
+
+{% if total %}
+<details class="tarjeta" style="margin-top:18px">
+  <summary style="cursor:pointer;font-weight:600;color:#164e63">
+    Llenar un dato en los {{ total }} registros filtrados
+  </summary>
+  <p class="sub" style="margin:12px 0 14px">
+    Para lo que el formulario no pregunta y es igual para todo un grupo, como la
+    fecha de matrícula. <strong>Solo rellena los que estén vacíos</strong>; lo que
+    ya tiene dato no se toca. Si quieres aplicarlo a una parte, filtra primero.
+  </p>
+  <form method="post" action="/inscripciones/masivo">
+    {% for k, v in f.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <div class="filtros" style="margin:0">
+      <div class="campo">
+        <label for="campo">Dato</label>
+        <select id="campo" name="campo">
+          {% for k, v in masivos.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="campo" style="min-width:210px">
+        <label for="valor">Valor</label>
+        <input id="valor" name="valor" type="text"
+               placeholder="por ejemplo 01/07/2026" required>
+      </div>
+      <button class="boton" type="submit">Aplicar a los {{ total }}</button>
+    </div>
+  </form>
+</details>
+{% endif %}
+
+{% if paginas > 1 %}
+<div class="paginas">
+  {% if pagina > 1 %}<a href="{{ url_pagina }}{{ pagina - 1 }}">Anterior</a>{% endif %}
+  <span>Página {{ pagina }} de {{ paginas }}</span>
+  {% if pagina < paginas %}<a href="{{ url_pagina }}{{ pagina + 1 }}">Siguiente</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

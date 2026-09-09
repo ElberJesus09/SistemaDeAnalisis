@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · CPU UNPRG</title>
+<link rel="icon" href="/static/img/logo_unprg.png">
+<link rel="stylesheet" href="/static/css/panel.css">
+<body class="entrada">
+  <form class="caja" method="post" action="/login">
+    <img src="/static/img/logo_unprg.png" alt="">
+    <h1>Sistema de Inscripciones</h1>
+    <p class="sub">Centro Preuniversitario UNPRG · {{ ciclo }}</p>
+
+    {% if error %}<div class="aviso mal">{{ error }}</div>{% endif %}
+    {% if aviso %}<div class="aviso info">{{ aviso }}</div>{% endif %}
+
+    <div class="campo">
+      <label for="u">Usuario</label>
+      <input id="u" name="usuario" type="text" autofocus autocomplete="username" required>
+    </div>
+    <div class="campo">
+      <label for="c">Contraseña</label>
+      <input id="c" name="clave" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="boton" type="submit">Entrar</button>
+  </form>
+</body>
+</html>

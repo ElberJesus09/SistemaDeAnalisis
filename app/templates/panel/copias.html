@@ -1,0 +1,39 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Copias de seguridad{% endblock %}
+{% block cuerpo %}
+<h1>Copias de seguridad</h1>
+<p class="sub">Respaldo de alumnos, inscripciones, pagos, usuarios, tarifario e historiales de MySQL.</p>
+{% if copia.error %}<div class="aviso mal">{{ copia.error }}</div>{% endif %}
+<div class="tarjeta">
+  <h2>Destino y frecuencia</h2>
+  <form method="post" action="/copias/configurar">
+    <input type="hidden" name="token" value="{{ token }}">
+    <div class="campo">
+      <label for="carpeta">Carpeta de destino en la computadora que ejecuta el sistema</label>
+      <input type="text" id="carpeta" name="carpeta" value="{{ copia.carpeta }}" required placeholder="D:\CopiasCPU">
+    </div>
+    <p class="sub">Puedes pegar la ruta de una carpeta local, un disco externo o una carpeta de OneDrive.
+      El destino debe estar disponible cuando se haga la copia.</p>
+    <div class="campo">
+      <label for="horas">Crear una copia cada cuántas horas</label>
+      <input type="number" id="horas" name="horas" min="1" max="168" value="{{ copia.horas }}" required>
+    </div>
+    <p><label><input type="checkbox" name="activo" value="si" {{ 'checked' if copia.activo }}> Activar copias automáticas</label></p>
+    <button type="submit" class="boton">Guardar configuración</button>
+  </form>
+  <p class="sub">Las copias se crean mientras el sistema está abierto. Si la computadora estuvo apagada,
+    la copia pendiente se hará al iniciar. Cada ZIP tiene su fecha y hora; no se borran las copias anteriores.</p>
+</div>
+<div class="tarjeta">
+  <h2>Última copia</h2>
+  <p>{{ copia.ultima_copia or 'Todavía no se ha creado una copia.' }}</p>
+  {% if copia.archivo %}<p style="overflow-wrap:anywhere">{{ copia.archivo }}</p>{% endif %}
+  <form method="post" action="/copias/crear">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button type="submit" class="boton">Crear copia ahora</button>
+  </form>
+  <p class="sub">El ZIP contiene la base en formato SQL, los conteos por tabla y las instrucciones de restauración.
+    La integridad del archivo se comprueba antes de dar la copia por terminada.
+    El programa y las credenciales de correo y Google se configuran por separado.</p>
+</div>
+{% endblock %}

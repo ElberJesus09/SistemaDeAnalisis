@@ -1,0 +1,78 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Tarifario{% endblock %}
+{% block cuerpo %}
+
+<h1>Tarifario del ciclo</h1>
+<p class="sub">Qué conceptos se cobran y cuánto. El código es el
+  <code>COD_PAGO</code> que trae el reporte del banco — así se sabe qué pagó
+  cada alumno, porque el banco manda la descripción en blanco.</p>
+
+<p class="sub">Ciclo
+  <select onchange="location='/tarifario?ciclo='+encodeURIComponent(this.value)"
+          style="width:auto;display:inline-block">
+    {% for c in ciclos %}
+    <option value="{{ c }}" {{ 'selected' if c == ciclo_sel }}>{{ c }}</option>{% endfor %}
+  </select>
+</p>
+
+<div class="tarjeta">
+  <h2>Conceptos de {{ ciclo_sel }}</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>Código</th><th>Nombre</th><th>Importe</th><th>Tipo</th>
+        <th>¿Obligatorio?</th><th>Estado</th><th></th></tr>
+    {% for c in conceptos %}
+    <tr>
+      <td><code>{{ c.codigo }}</code></td>
+      <td>{{ c.nombre }}</td>
+      <td style="text-align:right">S/ {{ '%.2f'|format(c.importe) }}</td>
+      <td>Importe exacto</td>
+      <td>{{ 'Sí' if c.obligatorio else 'No' }}</td>
+      <td>{% if c.activo %}<span class="etiqueta ok">Activo</span>
+          {% else %}<span class="etiqueta falta">Desactivado</span>{% endif %}</td>
+      <td>
+        <a class="boton gris" href="/tarifario?ciclo={{ ciclo_sel|urlencode }}&editar={{ c.id }}#concepto">Editar</a>
+        {% if c.activo %}
+        <form method="post" action="/tarifario/quitar" style="display:inline">
+          <input type="hidden" name="id" value="{{ c.id }}">
+          <input type="hidden" name="ciclo" value="{{ ciclo_sel }}">
+          <button class="boton gris" type="submit">Desactivar</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  <p class="sub" style="margin:14px 0 0">
+    El importe debe coincidir exactamente con el configurado para ese código.
+    Un monto distinto queda observado. Varios pagos para el mismo código requieren
+    revisión; no se consideran cuotas automáticamente. Cambiar un importe afecta
+    la validación de todas las inscripciones del ciclo.
+  </p>
+</div>
+
+<div class="tarjeta">
+  <h2 id="concepto">{{ 'Modificar concepto' if editar else 'Agregar un concepto' }}</h2>
+  <form method="post" action="/tarifario">
+    <input type="hidden" name="ciclo" value="{{ ciclo_sel }}">
+    <div class="rejilla">
+      <div class="campo"><label for="codigo">Código (COD_PAGO)</label>
+        <input id="codigo" name="codigo" type="text" value="{{ editar.codigo if editar else '' }}" pattern="[0-9]{1,8}" maxlength="8" placeholder="00001098" required></div>
+      <div class="campo"><label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" type="text" value="{{ editar.nombre if editar else '' }}" maxlength="80" required></div>
+      <div class="campo"><label for="importe">Importe S/</label>
+        <input id="importe" name="importe" type="number" min="0.01" step="0.01" value="{{ '%.2f'|format(editar.importe) if editar else '' }}" required></div>
+      <div class="campo"><label>Opciones</label>
+        <label style="font-weight:400;text-transform:none">
+          <input type="checkbox" name="obligatorio" value="1" {{ 'checked' if not editar or editar.obligatorio }} style="width:auto">
+          Obligatorio</label>
+      </div>
+    </div>
+    <p style="margin:14px 0 0"><button class="boton" type="submit">Guardar</button></p>
+  </form>
+  <p class="sub" style="margin:14px 0 0">
+    Si el código ya existe en este ciclo, se actualiza.
+  </p>
+</div>
+{% endblock %}

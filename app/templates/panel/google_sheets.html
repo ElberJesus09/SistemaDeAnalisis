@@ -1,0 +1,37 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Google Sheets{% endblock %}
+{% block cuerpo %}
+<h1>Respuestas automáticas de Google Sheets</h1>
+<div class="tarjeta">
+  <p>Ciclo de destino: <strong>{{ google.ciclo }}</strong>.</p>
+  <p>{% if google.activo %}Revisión cada <strong>{{ google.minutos }} minutos</strong> mientras esta computadora tenga el sistema abierto e internet.
+    {% else %}La revisión automática está desactivada.{% endif %}</p>
+  <p>Al volver a abrir el sistema, se revisan también las respuestas pendientes.
+    Se conserva la fecha original del formulario y se evitan duplicados por DNI y ciclo.</p>
+  <div class="aviso {{ 'mal' if google.error else 'info' }}">{{ google.mensaje }}</div>
+  <p>Último intento: {{ google.ultimo_intento or 'Todavía no' }}<br>
+    Última lectura correcta: {{ google.ultimo_exito or 'Todavía no' }}</p>
+  {% if not google.credenciales_listas %}
+  <h2>Falta autorizar el acceso de lectura</h2>
+  <p>La hoja seguirá privada. La contraseña del correo no permite leer Google Sheets.</p>
+  <ol>
+    <li>En Google Cloud, habilita Google Sheets API y crea una cuenta de servicio.</li>
+    <li>Descarga su clave JSON y guárdala en <code>credenciales/google-sheets.json</code> dentro de la carpeta del sistema, en esta computadora.</li>
+    <li>Comparte únicamente la hoja de respuestas con el correo de esa cuenta de servicio, como <strong>Lector</strong>.</li>
+    <li>Pulsa «Sincronizar ahora» para comprobar la conexión.</li>
+  </ol>
+  <p>No es necesario publicar la hoja ni dar permiso de edición.</p>
+  {% endif %}
+  <form method="post" action="/google-sheets/sincronizar">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button class="boton" type="submit" {% if not google.credenciales_listas %}disabled{% endif %}>Sincronizar ahora</button>
+    <a href="/inscripciones">Ver inscripciones por día</a>
+  </form>
+</div>
+<div class="tarjeta">
+  <h2>Validación de pagos</h2>
+  <p>Las respuestas llegan desde Google. El Excel del banco se sigue cargando en Importar;
+    el sistema cruza los pagos con las inscripciones. Sin un pago coincidente no se marca como pagado.</p>
+  <p>La sincronización no envía fichas ni correos automáticamente.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Usuarios{% endblock %}
+{% block cuerpo %}
+
+<h1>Usuarios del sistema</h1>
+<p class="sub">Quién puede entrar desde las computadoras de la red y con qué permisos.</p>
+
+<div class="tarjeta">
+  <h2>Usuarios registrados</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th></th></tr>
+    {% for u in usuarios %}
+    <tr>
+      <td>{{ u.usuario }}</td><td>{{ u.nombre }}</td><td>{{ u.rol }}</td>
+      <td>{% if u.activo %}<span class="etiqueta ok">Activo</span>
+          {% else %}<span class="etiqueta falta">Inactivo</span>{% endif %}</td>
+      <td style="white-space:nowrap">
+        <form method="post" action="/usuarios/clave" style="display:inline-flex;gap:6px">
+          <input type="hidden" name="id" value="{{ u.id }}">
+          <input name="clave" type="password" placeholder="Nueva contraseña"
+                 style="width:150px" required>
+          <button class="boton gris" type="submit">Cambiar</button>
+        </form>
+        {% if u.id != sesion.id %}
+        <form method="post" action="/usuarios/activo" style="display:inline">
+          <input type="hidden" name="id" value="{{ u.id }}">
+          <input type="hidden" name="activo" value="{{ 0 if u.activo else 1 }}">
+          <button class="boton gris" type="submit">
+            {{ 'Desactivar' if u.activo else 'Activar' }}</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2>Agregar usuario</h2>
+  <form method="post" action="/usuarios">
+    <div class="rejilla">
+      <div class="campo"><label for="usuario">Usuario</label>
+        <input id="usuario" name="usuario" type="text" required></div>
+      <div class="campo"><label for="nombre">Nombre completo</label>
+        <input id="nombre" name="nombre" type="text" required></div>
+      <div class="campo"><label for="rol">Rol</label>
+        <select id="rol" name="rol">
+          <option value="secretaria">Secretaría — importar, editar, imprimir fichas</option>
+          <option value="admin">Administrador — todo, incluidos usuarios</option>
+        </select></div>
+      <div class="campo"><label for="clave">Contraseña</label>
+        <input id="clave" name="clave" type="password" required></div>
+    </div>
+    <p style="margin:14px 0 0"><button class="boton" type="submit">Crear usuario</button></p>
+  </form>
+</div>
+{% endblock %}

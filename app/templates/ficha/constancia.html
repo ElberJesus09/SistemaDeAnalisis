@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Constancia de Matrícula {{ f.ciclo }}</title>
+<style>
+  @font-face { font-family:'DejaVuP'; src:url('{{ base }}/static/fonts/DejaVuSans.ttf') format('truetype'); font-weight:400; }
+  @font-face { font-family:'DejaVuP'; src:url('{{ base }}/static/fonts/DejaVuSans-Bold.ttf') format('truetype'); font-weight:700; }
+
+  :root{
+    --azul:#0f5f8f;        /* barras de sección y título */
+    --azul-osc:#164e63;    /* UNPRG, subtítulos */
+    --borde:#8ab4c8;       /* borde de tarjetas */
+    --label-bg:#edf7fb;    /* fondo de etiquetas */
+    --label-bd:#cbd5e1;    /* separador de filas */
+    --texto:#111827;
+    --gris:#555555;
+    --decl-bg:#f6fbfd;
+  }
+
+  /* Una sola hoja A4. El script ajusta el zoom si el contenido creciera. */
+  /* Chromium respeta este margen y el script pasa margin=0 a la API,
+     asi el margen se define en un solo sitio. */
+  @page { size:A4; margin:13.5pt; }
+  #hoja{ break-inside:avoid; page-break-inside:avoid; }
+  .card, .decl, .decl li, .firmas{ break-inside:avoid; page-break-inside:avoid; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'DejaVuP','DejaVu Sans',Verdana,sans-serif;
+    font-size:6.8pt; color:var(--texto);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+
+  /* ---------- Cabecera ---------- */
+  .head{ display:flex; align-items:flex-start; gap:6pt; }
+  .head-l{ width:125pt; flex-shrink:0; }
+  .head-l img{ width:25.5pt; height:25.5pt; display:block; margin-bottom:4.5pt; }
+  .inst{ font-weight:700; font-size:6.6pt; color:var(--azul-osc); line-height:10.2pt; }
+  .univ{ font-size:6pt; color:var(--gris); line-height:10.2pt; }
+  .head-c{ flex:1; text-align:center; padding-top:5pt; }
+  .head-c h1{ margin:0; font-size:12pt; font-weight:700; color:var(--azul); letter-spacing:.2pt; }
+  .head-c .ciclo{ margin-top:6.5pt; font-size:9pt; font-weight:700; color:var(--azul-osc); }
+  .head-r{ width:105pt; flex-shrink:0; text-align:right; padding-top:4pt; }
+  .head-r .marca{ font-size:12pt; font-weight:700; color:var(--azul-osc); line-height:12pt; }
+  .head-r .dni-lb{ font-size:6pt; font-weight:700; color:var(--texto); margin-top:6.5pt; }
+  .dni-box{ margin-top:2.5pt; font-size:0; }
+  .dni-box span{
+    display:inline-block; width:10.5pt; height:12pt; margin-left:1.5pt;
+    border:.6pt solid var(--azul-osc); font-size:6.8pt; font-weight:700;
+    line-height:11pt; text-align:center; vertical-align:top;
+  }
+
+  /* ---------- Rejilla de tarjetas ---------- */
+  .grid{ display:flex; gap:6.7pt; margin:8pt 3.4pt 0; align-items:flex-start; }
+  .col{ flex:1; min-width:0; }
+
+  .card{ border:.7pt solid var(--borde); margin-bottom:5.3pt; }
+  .card h2{
+    margin:0; background:var(--azul); color:#fff;
+    font-size:6.8pt; font-weight:700; letter-spacing:.2pt;
+    padding:4.4pt 0 4.4pt 4.6pt; line-height:7.6pt;
+  }
+  table.kv{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  table.kv td{ border-top:.5pt solid var(--label-bd); padding:3.9pt 4.5pt; line-height:10.4pt; vertical-align:top; }
+  table.kv tr:first-child td{ border-top:0; }
+  table.kv td.k{ width:114.7pt; background:var(--label-bg); font-weight:700; }
+  table.kv td.v{ word-wrap:break-word; }
+  .vacio{ color:#9aa5b1; }
+
+  /* ---------- Declaración jurada ---------- */
+  .decl{
+    margin:10.5pt 0 0; border:.7pt solid var(--borde); background:var(--decl-bg);
+    padding:11pt 14pt 14pt;
+  }
+  .decl h2{ margin:0 0 12pt; text-align:center; font-size:9pt; font-weight:700; color:var(--azul-osc); letter-spacing:.2pt; }
+  .decl .cols{ display:flex; gap:24pt; }
+  .decl .cols > div{ flex:1; min-width:0; }
+  .decl ol{ margin:0; padding:0; list-style:none; }
+  .decl li{ position:relative; padding-left:14.3pt; margin-bottom:5.2pt; font-size:7.6pt; line-height:14.9pt; text-align:justify; }
+  .decl li:last-child{ margin-bottom:0; }
+  .decl li > b.n{ position:absolute; left:0; font-weight:400; }
+
+  /* ---------- Firmas ---------- */
+  .firmas{ display:flex; padding-top:20mm; gap:24pt; }
+  .firmas div{ flex:1; text-align:center; }
+  .firmas .linea{ width:145pt; margin:0 auto 5pt; border-top:.7pt solid #333; }
+  .firmas .rol{ font-size:6.8pt; }
+  .firmas .dni{ font-size:6pt; color:var(--gris); margin-top:4.8pt; }
+  .firmas .nombre{ font-size:6pt; margin:4pt auto 0; max-width:240pt; overflow-wrap:anywhere; }
+</style>
+
+<div id="hoja">
+
+<div class="head">
+  <div class="head-l">
+    <img src="{{ base }}/static/img/logo_unprg.png" alt="">
+    <div class="inst">Centro Preuniversitario Juan<br>Francisco Aguinaga Castro</div>
+    <div class="univ">Universidad Nacional Pedro Ruiz Gallo</div>
+  </div>
+  <div class="head-c">
+    <h1>CONSTANCIA DE MATRÍCULA</h1>
+    <div class="ciclo">{{ f.ciclo }}</div>
+  </div>
+  <div class="head-r">
+    <div class="marca">UNPRG</div>
+    <div class="dni-lb">DNI:</div>
+    <div class="dni-box">
+      {% for d in f.dni_casillas %}<span>{{ d }}</span>{% endfor %}
+    </div>
+  </div>
+</div>
+
+{% macro fila(k, v) -%}
+<tr><td class="k">{{ k }}</td>
+    <td class="v">{% if v %}{{ v }}{% else %}<span class="vacio">—</span>{% endif %}</td></tr>
+{%- endmacro %}
+
+<div class="grid">
+  <div class="col">
+    <div class="card">
+      <h2>DATOS PERSONALES</h2>
+      <table class="kv">
+        {{ fila('Nombres', f.nombres) }}
+        {{ fila('DNI', f.dni) }}
+        {{ fila('Nacimiento', f.nacimiento) }}
+        {{ fila('Sexo', f.sexo) }}
+        {{ fila('Telefono', f.telefono) }}
+        {{ fila('Correo', f.correo) }}
+        {{ fila('Direccion', f.direccion) }}
+      </table>
+    </div>
+
+    {% if f.tiene_apoderado %}
+    <div class="card">
+      <h2>DATOS DEL APODERADO</h2>
+      <table class="kv">
+        {{ fila('Nombres', f.apo_nombres) }}
+        {{ fila('DNI', f.apo_dni) }}
+        {{ fila('Telefono', f.apo_telefono) }}
+        {{ fila('Parentesco', f.apo_parentesco) }}
+      </table>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col">
+    <div class="card">
+      <h2>COLEGIO DE PROCEDENCIA</h2>
+      <table class="kv">
+        {{ fila('Colegio', f.colegio) }}
+        {{ fila('Ubicacion', f.colegio_ubicacion) }}
+        {{ fila('Egreso', f.colegio_egreso) }}
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>PROGRAMACION ACADEMICA</h2>
+      <table class="kv">
+        {{ fila('Carrera', f.carrera) }}
+        {{ fila('Sede', f.sede) }}
+        {% if f.modalidad %}{{ fila('Modalidad', f.modalidad) }}{% endif %}
+        {{ fila('Ciclo', f.ciclo) }}
+        {{ fila('Turno', f.turno) }}
+        {{ fila('Matricula', f.fecha_matricula) }}
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>DATOS DEL PAGO</h2>
+      <table class="kv">
+        {{ fila('Voucher', f.voucher) }}
+        {{ fila('Agencia', f.agencia) }}
+        {{ fila('Fecha pago', f.fecha_pago) }}
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="decl">
+  <h2>DECLARACION JURADA</h2>
+  <div class="cols">
+    <div>
+      <ol>
+        <li><b class="n">1.</b> Acepto inscribirme al {{ f.ciclo }} del Centro Pre Universitario - UNPRG.</li>
+        <li><b class="n">2.</b> Declaro que la informacion indicada en este documento es totalmente acreditable, de lo contrario me sujeto a las condiciones de registro establecidas por la Comision de Proceso de Admision del Centro Preuniversitario Juan Francisco Aguinaga Castro - UNPRG.</li>
+        <li><b class="n">3.</b> Declaro NO HABER INGRESADO a la UNPRG, a traves del CPU, en ciclos programados anteriormente.</li>
+        <li><b class="n">4.</b> La aplicacion y calificacion de los examenes y Reglamento es de mi conocimiento. Asimismo, la asignacion de vacantes y matricula de los ingresantes se rige por lo dispuesto en el Reglamento de Estudiantes del CPU, el cual declaramos haber leido y conocerlo.</li>
+        <li><b class="n">5.</b> Me comprometo a cumplir con lo dispuesto en el Reglamento de Estudiantes del CPU.</li>
+        <li><b class="n">6.</b> El pago es unico, por lo que me sujeto a la norma de INHABILIDAD para rendir el Primer Examen Parcial, por motivo de deuda.</li>
+      </ol>
+    </div>
+    <div>
+      <ol>
+        <li><b class="n">7.</b> Declaramos haber sido informados de los requisitos y documentacion obligatoria que debe presentarse para inscribir/matricular a un estudiante en el CPU (copias del DNI del alumno{% if f.tiene_apoderado %} y DNI de apoderado{% endif %}), a fin de cumplir con mi proceso de inscripcion y matricula.</li>
+        <li><b class="n">8.</b> Me comprometo a DENUNCIAR ante las autoridades pertinentes toda irregularidad cometida por personas inescrupulosas que trafican tomando el nombre de esta Institucion y de sus autoridades.</li>
+        <li><b class="n">9.</b> Me comprometo a informar a las autoridades del C.P.U. sobre cualquier discapacidad y/o accesorio que pudiera utilizar para desarrollar mis habilidades normales.</li>
+        <li><b class="n">10.</b> Quedo por informacion, que:</li>
+        <li><b class="n">11.</b> TANTO PARA ASISTIR A LAS CLASES EN AULAS COMO PARA LAS EVALUACIONES, no se permitira el ingreso con ropa inapropiada; asi como dispositivos moviles, equipos de reproduccion multimedia o similares, camara fotografica.</li>
+        <li><b class="n">12.</b> PARA LAS EVALUACIONES, solo debera portar su DNI, carnet y utiles. No llevar carteras, billeteras, lentes, cuadernos, libros, etc. DE ACONTECER PERDIDA, NO NOS HACEMOS RESPONSABLES.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="firmas">
+  <div>
+    <div class="linea"></div>
+    <div class="rol">Firma de alumno</div>
+    <div class="nombre">{{ f.nombres }}</div>
+    <div class="dni">DNI: {{ f.dni }}</div>
+  </div>
+  {% if f.tiene_apoderado %}
+  <div>
+    <div class="linea"></div>
+    <div class="rol">Firma apoderado</div>
+    <div class="nombre">{{ f.apo_nombres }}</div>
+    <div class="dni">DNI: {{ f.apo_dni or '________________' }}</div>
+  </div>
+  {% endif %}
+</div>
+
+</div><!-- /hoja -->
+</html>

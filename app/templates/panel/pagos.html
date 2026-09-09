@@ -1,0 +1,85 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Pagos{% endblock %}
+{% block cuerpo %}
+
+<h1>Pagos del Banco de la Nación</h1>
+<p class="sub">{{ filas|length }} pago(s) · S/ {{ '%.2f'|format(total) }} recaudado
+  {% if huerfanos %} · <strong>{{ huerfanos }}</strong> sin inscripción{% endif %}</p>
+
+<div class="cifras">
+  {% for c in tarifario %}
+  <div class="cifra">
+    <b>{{ c.codigo|replace('0000','') }}</b>
+    <span>{{ c.nombre }} ·
+      S/ {{ '%.2f'|format(c.importe) }} esperado</span>
+  </div>
+  {% endfor %}
+</div>
+
+<form class="filtros" method="get" action="/pagos">
+  <div class="campo" style="min-width:250px">
+    <label for="q">Buscar</label>
+    <input id="q" name="q" type="text" value="{{ q }}"
+           placeholder="DNI, voucher o nombre del banco">
+  </div>
+  <div class="campo">
+    <label for="ciclo">Ciclo</label>
+    <select id="ciclo" name="ciclo">
+      {% for c in ciclos %}
+      <option value="{{ c }}" {{ 'selected' if c == ciclo_sel }}>{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <label for="solo">Mostrar</label>
+    <select id="solo" name="solo">
+      <option value="">Todos</option>
+      <option value="aplicados" {{ 'selected' if solo == 'aplicados' }}>Aplicados a un alumno</option>
+      <option value="huerfanos" {{ 'selected' if solo == 'huerfanos' }}>Sin inscripción</option>
+    </select>
+  </div>
+  <button class="boton" type="submit">Filtrar</button>
+  <a class="boton gris" href="/pagos">Limpiar</a>
+</form>
+
+<div class="envoltura">
+<table class="datos">
+  <tr>
+    <th>DNI</th><th>Nombre en el banco</th><th>Voucher</th><th>Últ. 7</th>
+    <th>Concepto</th><th>Importe</th><th>Fecha</th><th>Agencia</th><th>Aplicado a</th>
+  </tr>
+  {% for p in filas %}
+  <tr>
+    <td>{{ p.dni }}</td>
+    <td>{{ p.nombre_banco or '—' }}</td>
+    <td>{{ p.voucher }}</td>
+    <td><code>{{ p.voucher_clave }}</code></td>
+    <td>{{ p.concepto or p.cod_pago }}</td>
+    <td style="text-align:right">S/ {{ '%.2f'|format(p.importe) }}</td>
+    <td>{{ p.fecha_pago }}</td>
+    <td>{{ p.agencia }}</td>
+    <td>
+      {% if p.inscripcion_id %}
+        <a href="/inscripcion/{{ p.inscripcion_id }}">{{ p.alumno }}</a>
+      {% else %}
+        <span class="etiqueta falta">Sin inscripción</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="9" style="text-align:center;padding:26px;color:#5b6572">
+    Todavía no se ha importado ningún pago.
+    <a href="/importar">Subir el reporte del banco</a>.</td></tr>
+  {% endfor %}
+</table>
+</div>
+
+<p style="margin-top:16px">
+  <form method="post" action="/pagos/conciliar" style="display:inline">
+    <input type="hidden" name="ciclo" value="{{ ciclo_sel }}">
+    <button class="boton gris" type="submit">Volver a conciliar</button>
+  </form>
+  <span class="sub" style="margin-left:10px">
+    Amarra con su alumno los pagos que quedaron sueltos porque el postulante
+    llenó el formulario después.</span>
+</p>
+{% endblock %}

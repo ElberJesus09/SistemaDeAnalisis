@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Panel{% endblock %} · CPU UNPRG</title>
+<link rel="icon" href="/static/img/logo_unprg.png">
+<link rel="stylesheet" href="/static/css/panel.css">
+
+<header class="top">
+  <img src="/static/img/logo_unprg.png" alt="">
+  <div class="marca">Centro Preuniversitario UNPRG
+    <small>Inscripciones · Ciclo {{ ciclo }}</small></div>
+  <nav>
+    <a href="/inscripciones" class="{{ 'activo' if seccion == 'inscripciones' }}">Inscripciones</a>
+    <a href="/pagos" class="{{ 'activo' if seccion == 'pagos' }}">Pagos</a>
+    <a href="/importar" class="{{ 'activo' if seccion == 'importar' }}">Importar</a>
+    <a href="/reportes" class="{{ 'activo' if seccion == 'reportes' }}">Reportes</a>
+    {% if sesion.rol == 'admin' %}
+    <a href="/tarifario" class="{{ 'activo' if seccion == 'tarifario' }}">Tarifario</a>
+    <a href="/usuarios" class="{{ 'activo' if seccion == 'usuarios' }}">Usuarios</a>
+    <a href="/copias" class="{{ 'activo' if seccion == 'copias' }}">Copias de seguridad</a>
+    {% endif %}
+    <span class="quien">{{ sesion.nombre }} ({{ sesion.rol }})</span>
+    <a href="/salir">Salir</a>
+  </nav>
+</header>
+
+<main>
+  {% if mensaje %}<div class="aviso {{ clase_mensaje|default('ok') }}">{{ mensaje }}</div>{% endif %}
+  {% block cuerpo %}{% endblock %}
+</main>
+</html>

@@ -1,0 +1,112 @@
+:root{
+  --azul:#0f5f8f; --azul-osc:#164e63; --azul-cl:#edf7fb; --borde:#cbd5e1;
+  --texto:#111827; --gris:#5b6572; --ok:#127a4b; --alerta:#b45309; --error:#b42318;
+  --fondo:#f4f7f9;
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;
+     color:var(--texto);background:var(--fondo)}
+a{color:var(--azul);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- barra superior ---------- */
+header.top{display:flex;align-items:center;gap:14px;background:var(--azul);
+  color:#fff;padding:9px 18px;position:sticky;top:0;z-index:10}
+header.top img{width:30px;height:30px}
+header.top .marca{font-weight:700;line-height:1.15}
+header.top .marca small{display:block;font-weight:400;font-size:11px;opacity:.85}
+header.top nav{margin-left:auto;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+header.top nav a{color:#fff;padding:6px 12px;border-radius:5px;font-size:13px}
+header.top nav a:hover{background:rgba(255,255,255,.15);text-decoration:none}
+header.top nav a.activo{background:rgba(255,255,255,.22);font-weight:600}
+header.top .quien{font-size:12px;opacity:.9;margin-left:10px;white-space:nowrap}
+
+main{max-width:1180px;margin:20px auto;padding:0 18px 50px}
+h1{font-size:20px;margin:0 0 4px;color:var(--azul-osc)}
+.sub{color:var(--gris);font-size:13px;margin:0 0 18px}
+
+/* ---------- tarjetas ---------- */
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:8px;
+  padding:18px;margin-bottom:18px}
+.tarjeta h2{font-size:14px;margin:0 0 14px;color:var(--azul-osc);
+  text-transform:uppercase;letter-spacing:.4px}
+
+/* ---------- formularios ---------- */
+label{display:block;font-size:12px;font-weight:600;color:var(--gris);
+  margin-bottom:4px}
+input[type=text],input[type=password],input[type=date],input[type=file],select,textarea{
+  width:100%;padding:7px 9px;border:1px solid var(--borde);border-radius:5px;
+  font:inherit;background:#fff}
+input:focus,select:focus{outline:2px solid #9fc7dd;border-color:var(--azul)}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.campo{margin-bottom:2px}
+.campo.falta input,.campo.falta select{border-color:#e0a3a3;background:#fff7f7}
+.campo.falta label{color:var(--error)}
+
+.boton{display:inline-block;background:var(--azul);color:#fff;border:0;
+  padding:8px 16px;border-radius:5px;font:inherit;cursor:pointer}
+.boton:hover{background:#0c4d74;text-decoration:none;color:#fff}
+.boton.gris{background:#e4e9ee;color:var(--texto)}
+.boton.gris:hover{background:#d6dde4;color:var(--texto)}
+.boton.pdf{background:var(--ok)}
+.boton.pdf:hover{background:#0e6640}
+
+/* ---------- tabla ---------- */
+table.datos{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
+table.datos th{background:var(--azul);color:#fff;text-align:left;padding:8px 10px;
+  font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+table.datos td{padding:7px 10px;border-top:1px solid #e6ebef;vertical-align:middle}
+table.datos tr:nth-child(even) td{background:#fafcfd}
+table.datos tr:hover td{background:var(--azul-cl)}
+.envoltura{overflow-x:auto;border:1px solid var(--borde);border-radius:8px}
+
+.etiqueta{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;
+  font-weight:600;white-space:nowrap}
+.etiqueta.ok{background:#e3f5ec;color:var(--ok)}
+.etiqueta.falta{background:#fdf0dc;color:var(--alerta)}
+.etiqueta.mal{background:#fdeceb;color:var(--error)}
+
+/* ---------- avisos ---------- */
+.aviso{padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:13px;
+  border:1px solid}
+.aviso.ok{background:#e8f6ef;border-color:#a9dcc4;color:#0d5e3c}
+.aviso.mal{background:#fdeceb;border-color:#f0b4b0;color:var(--error)}
+.aviso.info{background:var(--azul-cl);border-color:#a9cee0;color:var(--azul-osc)}
+
+/* ---------- filtros / paginacion ---------- */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.filtros .campo{min-width:150px;margin:0}
+.paginas{display:flex;gap:6px;align-items:center;margin-top:14px;font-size:13px;
+  color:var(--gris)}
+.paginas a{padding:4px 10px;border:1px solid var(--borde);border-radius:5px;
+  background:#fff}
+
+/* ---------- indicadores de reportes ---------- */
+.cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;
+  margin-bottom:18px}
+.cifra{background:#fff;border:1px solid var(--borde);border-left:4px solid var(--azul);
+  border-radius:6px;padding:12px 14px}
+.cifra b{display:block;font-size:24px;color:var(--azul-osc);line-height:1.2}
+.cifra span{font-size:12px;color:var(--gris)}
+.barra{background:#e9eef2;border-radius:3px;height:8px;overflow:hidden;min-width:70px}
+.barra i{display:block;height:100%;background:var(--azul)}
+
+/* ---------- login ---------- */
+body.entrada{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(160deg,#0f5f8f,#164e63)}
+.caja{background:#fff;border-radius:10px;padding:30px;width:340px;
+  box-shadow:0 12px 34px rgba(0,0,0,.25)}
+.caja img{width:56px;display:block;margin:0 auto 12px}
+.caja h1{text-align:center;font-size:16px;margin-bottom:2px}
+.caja p.sub{text-align:center;font-size:12px}
+.caja .campo{margin-bottom:12px}
+.caja .boton{width:100%;padding:10px;font-size:15px}
+
+/* ---------- panel de pagos dentro de la ficha del alumno ---------- */
+.pagos{width:100%;border-collapse:collapse;font-size:13px}
+.pagos th{text-align:left;font-size:11px;text-transform:uppercase;
+  letter-spacing:.4px;color:var(--gris);padding:0 8px 6px;font-weight:600}
+.pagos td{padding:8px;border-top:1px solid #e6ebef;vertical-align:middle}
+.pagos td.num{text-align:right;white-space:nowrap}
+.pagos tr.falta td{background:#fdfaf5}
+code{background:#eef3f6;padding:1px 5px;border-radius:3px;font-size:12px}

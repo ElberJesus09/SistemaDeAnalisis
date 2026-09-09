@@ -1,0 +1,114 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Importar{% endblock %}
+{% block cuerpo %}
+
+<h1>Importar inscripciones y pagos</h1>
+{% if sesion.rol == 'admin' %}
+<p><a class="boton" href="/google-sheets">Sincronización con Google Sheets</a></p>
+{% endif %}
+<p class="sub">Acepta dos archivos distintos y reconoce solo cuál es cada uno:
+  las <strong>respuestas del formulario</strong> de Google y el
+  <strong>reporte de pagos del Banco de la Nación</strong>. No hay que elegir nada.</p>
+
+{% if resumen %}
+<div class="aviso ok">
+  <strong>{{ resumen.archivo }}</strong> —
+  {% if resumen.tipo == 'pagos' %}reporte de pagos del banco
+  {% else %}respuestas del formulario{% endif %} ·
+  {{ resumen.filas }} fila(s) leídas: {{ resumen.nuevas }} nueva(s),
+  {{ resumen.actualizadas }} actualizada(s), {{ resumen.omitidas }} omitida(s).
+  {% if resumen.tipo == 'pagos' %}
+    Se aplicaron a un alumno {{ resumen.conciliados }} pago(s);
+    {{ resumen.sin_inscripcion }} quedaron sin inscripción.
+    Entre los alumnos de este archivo: {{ resumen.validados }} con pago validado,
+    {{ resumen.observados }} observado(s) y {{ resumen.parciales }} parcial(es).
+    <a href="/pagos">Ver los pagos</a>.
+  {% else %}
+    <a href="/inscripciones">Ver las inscripciones</a>.
+  {% endif %}
+</div>
+{% if resumen.avisos %}
+<div class="aviso mal">
+  <strong>Observaciones de la importación:</strong>
+  <ul style="margin:6px 0 0;padding-left:20px">
+    {% for a in resumen.avisos[:25] %}<li>{{ a }}</li>{% endfor %}
+    {% if resumen.avisos|length > 25 %}
+    <li>… y {{ resumen.avisos|length - 25 }} más.</li>{% endif %}
+  </ul>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="tarjeta">
+  <h2>Subir archivo</h2>
+  <p class="sub">Puedes cargar primero el Excel del banco o las respuestas del formulario.
+    Los pagos se vinculan por DNI y ciclo. Después se contrastan el voucher,
+    el código y el importe con el <a href="/tarifario">tarifario</a>.
+    Vincular un pago no significa que ya esté validado.</p>
+  <form method="post" action="/importar" enctype="multipart/form-data">
+    <div class="rejilla">
+      <div class="campo" style="grid-column:span 2">
+        <label for="archivo">Archivo (.csv, .xlsx o .txt)</label>
+        <input id="archivo" name="archivo" type="file"
+               accept=".csv,.xlsx,.xlsm,.txt,.tsv" required>
+      </div>
+      <div class="campo">
+        <label for="ciclo">Ciclo al que pertenece</label>
+        <input id="ciclo" name="ciclo" type="text" value="{{ ciclo }}">
+      </div>
+    </div>
+    <p style="margin:14px 0 0"><button class="boton" type="submit">Importar</button></p>
+  </form>
+  <p class="sub" style="margin:14px 0 0">
+    Reimportar el mismo archivo no duplica nada. El alumno se identifica por su DNI y la
+    inscripción por DNI + ciclo; los datos corregidos a mano en el panel no se pisan.
+    Cada pago del banco es único por voucher + concepto + DNI, y una vez aplicado a un
+    alumno ya no se puede mover a otro.
+  </p>
+</div>
+
+<div class="tarjeta">
+  <details>
+    <summary><strong>Orden del CSV del formulario (35 columnas)</strong></summary>
+    <p class="sub">Sube la exportación original de Google Forms, conservando sus encabezados.
+      No elimines las columnas vacías ni combines las que tienen el mismo nombre.</p>
+    <table class="datos">
+      <tr><th>Columnas</th><th>Contenido</th></tr>
+      <tr><td>1-2</td><td>Marca temporal y correo de la respuesta</td></tr>
+      <tr><td>3-6</td><td>Medio de pago, sede, modalidad y turno</td></tr>
+      <tr><td>7-11</td><td>Voucher, fecha del banco, agencia, secuencia y fecha de Págalo.pe</td></tr>
+      <tr><td>12</td><td>Carrera profesional</td></tr>
+      <tr><td>13-25</td><td>Datos del alumno, ubicación y si es menor de edad</td></tr>
+      <tr><td>26-30</td><td>Nombres, apellidos, DNI y teléfono del apoderado</td></tr>
+      <tr><td>31-35</td><td>Colegio, su ubicación y año de egreso</td></tr>
+    </table>
+    <p class="sub">La primera ubicación es del alumno; la segunda, del colegio.
+      De las dos fechas de pago se usa la primera que tenga un valor.
+      El correo recogido por Google se conserva separado del correo del alumno.
+      La fecha de la marca temporal se usa como fecha de matrícula en la ficha;
+      también se conserva la marca completa con su hora. No reemplaza una fecha
+      de matrícula ya completada en el panel ni confirma el pago.
+      El ciclo se elige al subir el archivo.</p>
+  </details>
+</div>
+
+<div class="tarjeta">
+  <h2>Importaciones anteriores</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>Fecha</th><th>Archivo</th><th>Filas</th><th>Nuevas</th>
+        <th>Actualizadas</th><th>Omitidas</th><th>Usuario</th></tr>
+    {% for h in historial %}
+    <tr>
+      <td>{{ h.creado }}</td><td>{{ h.archivo }}</td><td>{{ h.filas }}</td>
+      <td>{{ h.nuevas }}</td><td>{{ h.actualizadas }}</td><td>{{ h.omitidas }}</td>
+      <td>{{ h.usuario or '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="text-align:center;padding:22px;color:#5b6572">
+      Todavía no se ha importado ningún archivo.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

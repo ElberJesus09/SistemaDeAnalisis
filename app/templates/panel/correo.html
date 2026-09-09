@@ -1,0 +1,30 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Enviar ficha por correo{% endblock %}
+{% block cuerpo %}
+<h1>Enviar ficha por correo</h1>
+<p class="sub">{{ datos.nombres }} · DNI {{ datos.dni }} · Ciclo {{ datos.ciclo }}</p>
+<div class="tarjeta">
+  <p>Remitente: <strong>{{ remitente }}</strong></p>
+  <p>Asunto: <strong>{{ asunto }}</strong></p>
+  <p style="white-space:pre-line">{{ cuerpo }}</p>
+  <p>Adjunto: ficha de inscripción PDF.
+    <a href="/inscripcion/{{ insc_id }}/ficha" target="_blank" rel="noopener">Revisar ficha</a></p>
+  <form method="post" action="/inscripcion/{{ insc_id }}/correo" id="enviar-correo">
+    <input type="hidden" name="token" value="{{ token }}">
+    <div class="campo">
+      <label for="destinatario">Correo del destinatario</label>
+      <input type="email" name="destinatario" id="destinatario" value="{{ datos.correo }}" required maxlength="254">
+    </div>
+    <p class="sub">Comprueba el destinatario y la ficha antes de enviar. Se utilizarán los datos guardados de la inscripción.</p>
+    <button class="boton" type="submit">Enviar correo con PDF</button>
+    <a href="/inscripcion/{{ insc_id }}">Volver sin enviar</a>
+  </form>
+</div>
+<script>
+document.getElementById('enviar-correo').addEventListener('submit', function () {
+  const boton = this.querySelector('button[type="submit"]');
+  boton.disabled = true;
+  boton.textContent = 'Enviando…';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "panel/base.html" %}
+{% block titulo %}Reportes{% endblock %}
+{% block cuerpo %}
+
+<h1>Reportes</h1>
+<p class="sub">Ciclo
+  <select onchange="location='/reportes?ciclo='+encodeURIComponent(this.value)"
+          style="width:auto;display:inline-block">
+    {% for c in ciclos %}
+    <option value="{{ c }}" {{ 'selected' if c == ciclo_sel }}>{{ c }}</option>{% endfor %}
+  </select>
+</p>
+
+<div class="cifras">
+  <div class="cifra"><b>{{ kpi.total }}</b><span>Inscritos</span></div>
+  <div class="cifra"><b>{{ kpi.completos }}</b><span>Listos para ficha</span></div>
+  <div class="cifra"><b>{{ kpi.incompletos }}</b><span>Con datos faltantes</span></div>
+  <div class="cifra"><b>{{ kpi.carreras }}</b><span>Carreras con postulantes</span></div>
+  <div class="cifra"><b>{{ kpi.pagados }}</b><span>Con el pago completo</span></div>
+  <div class="cifra"><b>{{ kpi.sin_pagar }}</b><span>Sin el pago completo</span></div>
+  <div class="cifra"><b>S/ {{ '%.0f'|format(caja.total) }}</b>
+    <span>Recaudado ({{ caja.pagos }} pagos)</span></div>
+</div>
+
+<div class="tarjeta">
+  <h2>Recaudación por concepto</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>Concepto</th><th style="width:90px">Pagos</th>
+        <th style="width:130px;text-align:right">Soles</th></tr>
+    {% for f in caja.conceptos %}
+    <tr><td>{{ f.concepto or f.cod_pago }}</td><td>{{ f.n }}</td>
+        <td style="text-align:right">S/ {{ '%.2f'|format(f.soles) }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" style="text-align:center;padding:20px;color:#5b6572">
+      Todavía no se ha importado el reporte del banco.</td></tr>
+    {% endfor %}
+    {% if caja.conceptos %}
+    <tr><td><strong>Total</strong></td><td><strong>{{ caja.pagos }}</strong></td>
+        <td style="text-align:right"><strong>S/ {{ '%.2f'|format(caja.total) }}</strong></td></tr>
+    {% endif %}
+  </table>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2>Recaudación por agencia</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>Agencia</th><th style="width:90px">Pagos</th>
+        <th style="width:130px;text-align:right">Soles</th></tr>
+    {% for f in caja.agencias %}
+    <tr><td>{{ f.clave or '(sin dato)' }}</td><td>{{ f.n }}</td>
+        <td style="text-align:right">S/ {{ '%.2f'|format(f.soles) }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" style="text-align:center;padding:20px;color:#5b6572">
+      Sin datos.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+{% macro tabla(titulo, filas, etiqueta) %}
+<div class="tarjeta">
+  <h2>{{ titulo }}</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>{{ etiqueta }}</th><th style="width:80px">Inscritos</th>
+        <th style="width:230px">Participación</th></tr>
+    {% for f in filas %}
+    <tr>
+      <td>{{ f.clave or '(sin dato)' }}</td>
+      <td>{{ f.n }}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="barra" style="flex:1"><i style="width:{{ f.pct }}%"></i></div>
+          <span style="font-size:12px;color:#5b6572;width:44px">{{ f.pct }}%</span>
+        </div>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" style="text-align:center;padding:20px;color:#5b6572">
+      Sin datos.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endmacro %}
+
+{{ tabla('Inscritos por carrera', por_carrera, 'Carrera') }}
+{{ tabla('Inscritos por turno', por_turno, 'Turno') }}
+{{ tabla('Pagos por agencia', por_agencia, 'Agencia') }}
+{{ tabla('Inscritos por departamento', por_departamento, 'Departamento') }}
+
+<div class="tarjeta">
+  <h2>Inscripciones por día de pago</h2>
+  <div class="envoltura">
+  <table class="datos">
+    <tr><th>Fecha de pago</th><th style="width:100px">Inscritos</th></tr>
+    {% for f in por_fecha %}
+    <tr><td>{{ f.clave or '(sin fecha)' }}</td><td>{{ f.n }}</td></tr>
+    {% else %}
+    <tr><td colspan="2" style="text-align:center;padding:20px;color:#5b6572">
+      Sin datos.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<p><a class="boton" href="/reportes/excel?ciclo={{ ciclo_sel }}">Descargar todo en Excel</a></p>
+{% endblock %}

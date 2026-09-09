@@ -1,0 +1,8 @@
+PyMySQL>=1.1        # conexion con MySQL (Python puro, sin compilar)
+Jinja2>=3.1         # plantillas del panel y de la ficha
+openpyxl>=3.1       # leer .xlsx y generar los reportes en Excel
+playwright>=1.40    # convierte la ficha HTML en PDF
+google-auth[requests]>=2.38,<3  # acceso de lectura a Google Sheets
+
+# pywebview  -> ventana de escritorio. Se instala aparte porque es
+#               opcional: sin ella el sistema se abre en el navegador.
