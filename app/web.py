@@ -21,6 +21,7 @@ def render(plantilla, pet, **ctx):
     ctx.setdefault("sesion", pet.sesion or {})
     ctx.setdefault("ciclo", config.CICLO)
     ctx.setdefault("mensaje", pet.arg("msg"))
+    ctx.setdefault("google_activo", sync_google.opciones()["activo"])
     return _env.get_template(plantilla).render(**ctx)
 
 
@@ -380,12 +381,16 @@ def ver_importar(pet):
 
 @ruta("GET", "/google-sheets", rol="admin")
 def ver_google_sheets(pet):
+    if not sync_google.opciones()["activo"]:
+        return redirigir("/importar")
     return render("panel/google_sheets.html", pet, google=sync_google.estado(),
                   token=sync_google.token(pet.sesion), seccion="importar")
 
 
 @ruta("POST", "/google-sheets/sincronizar", rol="admin")
 def sincronizar_google_sheets(pet):
+    if not sync_google.opciones()["activo"]:
+        return redirigir("/importar")
     import hmac
     if not hmac.compare_digest(pet.campo("token"), sync_google.token(pet.sesion)):
         return Respuesta("Solicitud no válida. Vuelve a abrir Google Sheets.", 403)

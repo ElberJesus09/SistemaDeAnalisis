@@ -73,6 +73,8 @@ def _checkpoint():
 
 
 def sincronizar(usuario_id=None):
+    if not opciones()["activo"]:
+        return "La sincronización con Google Sheets está desactivada."
     if not _candado.acquire(blocking=False):
         return "Ya hay una sincronización en curso."
     try:

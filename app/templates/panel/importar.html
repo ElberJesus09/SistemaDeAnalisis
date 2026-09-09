@@ -3,7 +3,7 @@
 {% block cuerpo %}
 
 <h1>Importar inscripciones y pagos</h1>
-{% if sesion.rol == 'admin' %}
+{% if sesion.rol == 'admin' and google_activo %}
 <p><a class="boton" href="/google-sheets">Sincronización con Google Sheets</a></p>
 {% endif %}
 <p class="sub">Acepta dos archivos distintos y reconoce solo cuál es cada uno:

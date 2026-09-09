@@ -39,7 +39,8 @@ from_address =
 from_name = Centro Preuniversitario UNPRG
 
 [google_sheets]
-activo = si
+; Activar solo despues de configurar la API y el acceso a la hoja.
+activo = no
 spreadsheet_id =
 sheet_id =
 ciclo = 2026-II
